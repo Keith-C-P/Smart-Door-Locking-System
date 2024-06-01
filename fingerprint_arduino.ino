@@ -3,6 +3,7 @@
 #define LOCK 12
 #define BUTTON 11
 #define DELAY 6000
+#define ENROLLMENT 13 // make onboard led signify if in enrollment mode
 
 bool enrollment = false;
 
@@ -12,8 +13,9 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 uint8_t id;
 
 void setup(){
-  pinMode(BUTTON, INPUT);
+  pinMode(BUTTON, INPUT_PULLUP);
   pinMode(LOCK, OUTPUT);
+  pinMode(ENROLLMENT, OUTPUT);
   Serial.begin(9600);
 
   Serial.println("\n\nAdafruit finger detect test");
@@ -28,7 +30,7 @@ void setup(){
     } else {
       Serial.println("Did not find fingerprint sensor :(");
     }
-    delay(5000);
+    delay(5000); // waiting for 5 seconds before rechecking
   }
 
   finger.getTemplateCount();
@@ -42,15 +44,15 @@ void setup(){
 
   if (digitalRead(BUTTON) == LOW) {
     enrollment =  true;
+    digitalWrite(ENROLLMENT, 1);
     Serial.println("###### ENROLLMENT MODE ######");
     Serial.println("Waiting for enrolled user's Fingerprint...");
   }
   else {
-    Serial.println("###### NORMAL MODE ######");
+    digitalWrite(ENROLLMENT, 0);
+    Serial.println("######## NORMAL MODE ########");
     Serial.println("Waiting for valid finger...");
   }
-
-  pinMode(LOCK, OUTPUT);
   //unlock();
 
 }
@@ -58,12 +60,13 @@ void setup(){
 void loop(){ // run over and over again
   int print = getFingerprintIDez();
 
-  if (!(enrollment)){
-    if (print != -1 || buttonPressed()) {
+  if (!(enrollment))
+  {
+    if (print != -1 || buttonPressed()) 
       unlock();
-    }
   }
   else {
+    digitalWrite(LOCK, 0);
     Serial.print(".");
     if (print != -1) {
       bool enrollmentPrintFound = true;
@@ -80,10 +83,8 @@ void loop(){ // run over and over again
         ok = getFingerprintEnroll();
         Serial.println(ok);
       }
-
     }
   }
-  // delay(50);            //don't ned to run this at full speed.
 }
 
 bool buttonPressed(){ // debounce the button
@@ -103,7 +104,7 @@ void unlock(){
   digitalWrite(LOCK, 1);
 }
 
-uint8_t readnumber(void) {
+uint8_t readnumber(void) { // get number from serial monitor
   uint8_t num = 0;
 
   while (num == 0) {
@@ -270,5 +271,5 @@ uint8_t getFingerprintEnroll() {
   return true;
 }
 /* TODO:
-  - ADD PULLDOWN RESISTORS 
+  - ADD PULLDOWN RESISTORS
 */
