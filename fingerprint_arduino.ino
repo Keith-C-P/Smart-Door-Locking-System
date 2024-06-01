@@ -53,6 +53,7 @@ void setup(){
     Serial.println("######## NORMAL MODE ########");
     Serial.println("Waiting for valid finger...");
   }
+  digitalWrite(LOCK, 1);
   //unlock();
 
 }
@@ -91,6 +92,7 @@ bool buttonPressed(){ // debounce the button
   if( digitalRead(BUTTON) == LOW){
     delay(10);
     if( digitalRead(BUTTON) == LOW){
+      Serial.println("Button Pressed");
       return true;
     }
     return false;
